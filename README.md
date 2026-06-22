@@ -1,6 +1,6 @@
 ## Workflow Overview
 
-![Workflow Overview](workflow-overview.png)
+![Workflow Overview](workflow-overview.jpg)
 # AI-Agent-Inquiry-Routing-System
 AI-powered contact form routing workflow built with n8n and Gemini. Automatically classifies inbound inquiries using natural-language understanding, replacing rigid keyword matching to route messages to the appropriate destination.
 The project was created to explore practical applications of workflow automation, AI-assisted decision-making, and business process optimization.
