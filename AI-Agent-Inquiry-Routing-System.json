@@ -1,0 +1,314 @@
+{
+  "name": "AI-Agent-Inquiry-Routing-System",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Contact",
+        "formDescription": "Please provide your name, email, company, and a brief message about what you're looking for ",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Email",
+              "fieldType": "email",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Company",
+              "defaultValue": "Company"
+            },
+            {
+              "fieldLabel": "Leave a Message",
+              "fieldType": "textarea"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        -352,
+        128
+      ],
+      "id": "eda7ebc7-e33a-41ec-9cc3-c8c0ca12c531",
+      "name": "On form submission",
+      "webhookId": "c970e7a0-c03c-40a1-b853-4bb66b551d81"
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "inboxId": "kyle-zambrano@agentmail.to",
+        "to": "kyzamb@gmail.com",
+        "subject": "Networking Opportunity",
+        "textBody": "=Name- {{ $('On form submission').item.json.Name }}\nEmail- {{ $('On form submission').item.json.Email }}\nCompany- {{ $('On form submission').item.json.Company }}\n{{ $('On form submission').item.json['Leave a Message'] }}",
+        "messageOptions": {}
+      },
+      "type": "n8n-nodes-agentmail.agentMail",
+      "typeVersion": 1,
+      "position": [
+        480,
+        -48
+      ],
+      "id": "7071ae98-3cc9-4223-9fb9-7d9002437da4",
+      "name": "Networking Opportunity email",
+      "credentials": {
+        "agentMailApi": {
+          "id": "fmggNZhSmav0XEgN",
+          "name": "AgentMail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "inboxId": "kyle-zambrano@agentmail.to",
+        "to": "kyzamb@gmail.com",
+        "subject": "Hate Mail",
+        "textBody": "=Name- {{ $('On form submission').item.json.Name }}\nEmail- {{ $('On form submission').item.json.Email }}\nCompany- {{ $('On form submission').item.json.Company }}\n{{ $('On form submission').item.json['Leave a Message'] }}",
+        "messageOptions": {}
+      },
+      "type": "n8n-nodes-agentmail.agentMail",
+      "typeVersion": 1,
+      "position": [
+        480,
+        288
+      ],
+      "id": "9ff4f69b-2898-485f-bc8a-843fd96d9aff",
+      "name": "Hate Mail email",
+      "credentials": {
+        "agentMailApi": {
+          "id": "fmggNZhSmav0XEgN",
+          "name": "AgentMail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        -112,
+        304
+      ],
+      "id": "217678cf-2812-4163-9712-e8d2a6305e0d",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "3FTq01okJN0hHlet",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are classifying inbound contact form submissions.\n\nClassify the following message into ONLY one of these categories:\n\n- Job Opportunity\n- Networking\n- Inappropriate/obscene \n\nMessage:\n{{ $json['Leave a Message'] }}\n\nRespond with ONLY the category name.",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        -112,
+        128
+      ],
+      "id": "af39c5a1-8e69-4d9c-9979-9d480d38b33c",
+      "name": "Basic LLM Chain: Message Categorization"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.text }}",
+                    "rightValue": "Networking",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "bb50080f-6857-4f16-b761-400ce9fbb615"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "7c4afffb-6b06-4eb5-85c3-c5e3f0ed7d58",
+                    "leftValue": "={{ $json.text }}",
+                    "rightValue": "Job Opportunity",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "1220310e-ef46-42bc-9c9a-2b1233f2dfa2",
+                    "leftValue": "={{ $json.text }}",
+                    "rightValue": "Inappropriate/obscene",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {
+          "ignoreCase": true
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        112
+      ],
+      "id": "d1019b48-8344-4580-a094-3add1a5c5fae",
+      "name": "Switch: Message Routing"
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "inboxId": "kyle-zambrano@agentmail.to",
+        "to": "kyzamb@gmail.com",
+        "subject": "Job Opportunity ",
+        "textBody": "=Name- {{ $('On form submission').item.json.Name }}\nEmail- {{ $('On form submission').item.json.Email }}\nCompany- {{ $('On form submission').item.json.Company }}\n{{ $('On form submission').item.json['Leave a Message'] }}",
+        "messageOptions": {}
+      },
+      "type": "n8n-nodes-agentmail.agentMail",
+      "typeVersion": 1,
+      "position": [
+        480,
+        128
+      ],
+      "id": "f1262525-5796-4907-8bef-674fed59a280",
+      "name": "Job Opportunity email",
+      "credentials": {
+        "agentMailApi": {
+          "id": "fmggNZhSmav0XEgN",
+          "name": "AgentMail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain: Message Categorization",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain: Message Categorization",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain: Message Categorization": {
+      "main": [
+        [
+          {
+            "node": "Switch: Message Routing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch: Message Routing": {
+      "main": [
+        [
+          {
+            "node": "Networking Opportunity email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Job Opportunity email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Hate Mail email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Job Opportunity email": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "1dc6f88f-591d-4a1b-9c13-481e8ceb50a5",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e822aa9d6b74e072eb22e2aab0fb0dbb96ddcd9f5a047c62fd66134267aa0d9b"
+  },
+  "id": "ANgkhdi4sbcv5c3t",
+  "tags": []
+}
